@@ -1,0 +1,365 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+
+import os
+import re
+import sys
+import time
+import math
+import argparse
+from itertools import chain
+from multiprocessing import Pool, Lock, Value
+import ConfigParser
+from tempfile import NamedTemporaryFile
+import json
+
+import logging
+import commands
+from tabulate import tabulate
+
+
+logging.basicConfig(filename='/tmp/segbench.log',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S',level=logging.INFO)
+logging.info('log begin.')
+
+#from ezs3.command import do_cmd, DoCommandError
+#from ezs3.log import EZLog
+#from ezs3.utils import is_empty_folder, get_full_path, bash_quoted, os_path_exists
+
+#EZLog.init_handler(logfile='/var/log/ezcloudstor/parsync.log')
+#logger = EZLog.get_logger('parsync'
+
+
+#fio conf path,
+
+PWD=os.path.abspath(os.curdir)
+PATH='{}/iscsi_conf'.format(PWD)
+PATCH_PATH='/tmp/segbench/patch_conf'
+
+
+def list_fio_pattern():
+    try:
+        files= os.listdir(PATH)
+        for each_file in files:
+            print each_file
+
+    except Exception as e:
+        print "some erro"
+
+
+def print_fio_pattern(test_type,job_id):
+    file='{}/{}'.format(PATH,job_id)
+
+    try:
+        with open(file,'r') as f:
+            data=f.read()
+
+        title='    #### {} ####'.format(job_id)
+        print title
+        print data
+
+    except Exception as e:
+        print "some erro"
+
+def patch_fio_conf(job_id,filename,fio_size,fio_runtime):
+    #PATH='/mnt/code/my_code/conf'
+    #PATCH_PATH='/mnt/code/my_code/patch_conf'
+
+    output=commands.getoutput("mkdir -p {}".format(PATCH_PATH))
+
+    #if output != ' ' :
+    #    print 'patch conf failed'
+    #    return 
+
+
+
+    output=commands.getoutput("cp -r {}/{} {}".format(PATH,job_id,PATCH_PATH))
+
+    file='{}/{}'.format(PATCH_PATH,job_id)
+
+    try:
+        with open(file,'r') as f:
+            lines=f.readlines()
+        #print 'befor patch ,the conf is {}'.format(lines)
+
+        for index,item in enumerate(lines):
+            if 'filename=' in item:
+                #print 'found filename'
+                lines[index]='filename={}\n'.format(filename)
+                #each_line=each_line.replace('ISCSI_LUN_TOKEN','/dev/sdc')
+            if 'size' in item:
+                lines[index]='size={}\n'.format(fio_size)
+            if 'runtime' in item:
+                lines[index]='runtime={}\n'.format(fio_runtime)
+        #print 'after patch,prepare to save {}'.format(lines)
+
+
+        with open(file,'w') as f:
+            f.writelines(lines)
+        #print "patch fio conf ok: {}".format(file)
+    except Exception as e:
+        print 'counter exception: {}'.format(str(e))
+
+    #conifg_manager = ConfBase()
+    #conifg_manager.read(file)
+    #sections=conifg_manager.get_sections()
+
+    #print 'debug, get sections :{}'.format(sections)
+
+    #conifg_manager.set(job_id,'filename',filename)
+    #conifg_manager.save()
+
+
+    # fio conf is not totally ini conf,--groupreporting for example
+    #cf = ConfigParser.SafeConfigParser()
+    #cf.read(file)
+    #secs = cf.sections() 
+    #print secs
+
+
+def get_fio_version():
+    output=commands.getoutput("fio -v")
+    if 'fio-3.' in output:
+        return 'version3'
+    elif 'fio-2.' in output:
+        return 'version2'
+    else:
+        return 'other'
+
+def do_fio_job(job_id,filename,fio_size,fio_runtime):
+
+    patch_fio_conf(job_id,filename,fio_size,fio_runtime)
+    patch_conf='{}/{}'.format(PATCH_PATH,job_id)
+    output=commands.getoutput("fio {} --output-format=json".format(patch_conf))
+
+    data=json.loads(output)
+
+    # format data
+
+    logging.info('have complete fio job :{}.'.format(patch_conf))
+    logging.info('fio result is :{}.'.format(json.dumps(data)))
+    
+
+    # debug
+    #print data['jobs']
+
+    #print data['jobs'][0]['write']
+    #print data['jobs'][0]['write']['iops']
+    fio_version=get_fio_version()
+    #print "#### do fio job: {}".format(job_id)
+
+
+    print "check the fio version: {}".format(fio_version)
+
+    if fio_version == 'version3':
+        fio_3x_result_format(data,job_id)
+
+    elif fio_version == 'version2':
+        fio_2x_result_format(data,job_id)
+
+    else:
+        print 'fio version is not expected'
+
+    #clear the patch conf
+    #commands.getoutput("rm -rf {}".format(PATCH_PATH))
+
+
+def print_header(header):
+    print '\n'
+    print '         =========  result of {}  =========      '.format(header)
+    #print '------------------------------------------------------------------'
+    #print 'type               |iops              |bandwidth                  '
+    #print '------------------------------------------------------------------'
+
+def fio_2x_result_format(data,job_id):
+    result={}
+    result['type']=''
+
+    rw_type=job_id.split('_')[1]
+    if rw_type.startswith('r'):
+        rw_type=rw_type[1:]
+    #print 'begin format fio result'
+    ## data[jobs] value is a list,the list only one item for jobnum is 1,if there is more jobs,need to modify
+    if 'w' not in rw_type:
+        # this is r 
+        result['type']='read'
+        result['iops']=data['jobs'][0]['read']['iops']
+        result['bandwidth']=data['jobs'][0]['read']['bw']
+
+        result['latency_avg']=data['jobs'][0]['read']['lat']['mean']
+        result['latency_900']=data['jobs'][0]['read']['clat']["percentile"]["90.000000"]
+        result['latency_950']=data['jobs'][0]['read']['clat']["percentile"]["95.000000"]
+        result['latency_990']=data['jobs'][0]['read']['clat']["percentile"]["99.000000"]
+        result['latency_999']=data['jobs'][0]['read']['clat']["percentile"]["99.900000"]
+        print_header(job_id)
+        #print '{}                |{}                  |{}'.format(result['type'],result['iops'],result['bandwidth'])
+        print tabulate([[result['type'], result['iops'],result['bandwidth'],result['latency_avg'], result['latency_900'],result['latency_950'],result['latency_990'],result['latency_999']]], headers=['type', 'iops','bandwidth(MB)','latency_avg(us)','latency_90%','latency_95%','latency_99%','latency_99.9%'], tablefmt='orgtbl')
+
+    elif 'r' not in rw_type:
+        # this is w
+        result['type']='write'
+        result['iops']=data['jobs'][0]['write']['iops']
+        result['bandwidth']=data['jobs'][0]['write']['bw']
+
+        result['latency_avg']=data['jobs'][0]['write']['lat']['mean']
+        result['latency_900']=data['jobs'][0]['write']['clat']["percentile"]["90.000000"]
+        result['latency_950']=data['jobs'][0]['write']['clat']["percentile"]["95.000000"]
+        result['latency_990']=data['jobs'][0]['write']['clat']["percentile"]["99.000000"]
+        result['latency_999']=data['jobs'][0]['write']['clat']["percentile"]["99.900000"]
+        print_header(job_id)
+        #pprint '{}                |{}                    |{}'.format(result['type'],result['iops'],result['bandwidth'])
+        print tabulate([[result['type'], result['iops'],result['bandwidth'],result['latency_avg'], result['latency_900'],result['latency_950'],result['latency_990'],result['latency_999']]], headers=['type', 'iops','bandwidth(MB)','latency_avg(us)','latency_90%','latency_95%','latency_99%','latency_99.9%'], tablefmt='orgtbl')
+
+
+
+    else:
+        result['type']='read and write'
+        result['read_iops']=data['jobs'][0]['read']['iops']
+        result['read_bandwidth']=data['jobs'][0]['read']['bw']
+        result['read_latency_avg']=data['jobs'][0]['read']['lat']['mean']
+        result['read_latency_900']=data['jobs'][0]['read']['clat']["percentile"]["90.000000"]
+        result['read_latency_950']=data['jobs'][0]['read']['clat']["percentile"]["95.000000"]
+        result['read_latency_990']=data['jobs'][0]['read']['clat']["percentile"]["99.000000"]
+        result['read_latency_999']=data['jobs'][0]['read']['clat']["percentile"]["99.900000"]
+        
+        
+        
+        result['write_iops']=data['jobs'][0]['write']['iops']
+        result['write_bandwidth']=data['jobs'][0]['write']['bw']
+        
+        result['write_latency_avg']=data['jobs'][0]['write']['lat']['mean']
+        result['write_latency_900']=data['jobs'][0]['write']['clat']["percentile"]["90.000000"]
+        result['write_latency_950']=data['jobs'][0]['write']['clat']["percentile"]["95.000000"]
+        result['write_latency_990']=data['jobs'][0]['write']['clat']["percentile"]["99.000000"]
+        result['write_latency_999']=data['jobs'][0]['write']['clat']["percentile"]["99.900000"]
+        print_header(job_id)
+        #print 'read        |{}             |{}'.format(result['read_iops'],result['read_bandwidth'])
+        #print 'write       |{}             |{}'.format(result['write_iops'],result['write_bandwidth'])
+
+        print tabulate([['read', result['read_iops'],result['read_bandwidth'],result['read_latency_avg'],result['read_latency_900'],result['read_latency_950'],result['read_latency_990'],result['read_latency_999']],['write',result['write_iops'],result['write_bandwidth'],result['write_latency_avg'],result['write_latency_900'],result['write_latency_950'],result['write_latency_990'],result['write_latency_999']]],headers=['type', 'iops','bandwidth(MB)','latency_avg(us)','latency_90%','latency_95%','latency_99%','latency_99.9%'], tablefmt='orgtbl')
+    #print result
+
+
+def fio_3x_result_format(data,job_id):
+    result={}
+    result['type']=''
+
+    rw_type=job_id.split('_')[1]
+    if rw_type.startswith('r'):
+        rw_type=rw_type[1:]
+    #print 'begin format fio result'
+    ## data[jobs] value is a list,the list only one item for jobnum is 1,if there is more jobs,need to modify
+    if 'w' not in rw_type:
+        # this is r 
+        result['type']='read'
+        result['iops']=data['jobs'][0]['read']['iops']
+        result['bandwidth']=data['jobs'][0]['read']['bw']
+
+        result['latency_avg']=data['jobs'][0]['read']['lat_ns']['mean']/1000/1000
+        result['latency_900']=data['jobs'][0]['read']['clat_ns']["percentile"]["90.000000"]/1000/1000
+        result['latency_950']=data['jobs'][0]['read']['clat_ns']["percentile"]["95.000000"]/1000/1000
+        result['latency_990']=data['jobs'][0]['read']['clat_ns']["percentile"]["99.000000"]/1000/1000
+        result['latency_999']=data['jobs'][0]['read']['clat_ns']["percentile"]["99.900000"]/1000/1000
+        print_header(job_id)
+        #print '{}                |{}                  |{}'.format(result['type'],result['iops'],result['bandwidth'])
+        print tabulate([[result['type'], result['iops'],result['bandwidth'],result['latency_avg'], result['latency_900'],result['latency_950'],result['latency_990'],result['latency_999']]], 
+                         headers=['type', 'iops','bandwidth(MB)','latency_avg(ms)','latency_90%()','latency_95%','latency_99%','latency_99.9%'], tablefmt='orgtbl')
+
+    elif 'r' not in rw_type:
+        # this is w
+        result['type']='write'
+        result['iops']=data['jobs'][0]['write']['iops']
+        result['bandwidth']=data['jobs'][0]['write']['bw']
+
+        result['latency_avg']=data['jobs'][0]['write']['lat_ns']['mean']/1000/1000
+        result['latency_900']=data['jobs'][0]['write']['clat_ns']["percentile"]["90.000000"]/1000/1000
+        result['latency_950']=data['jobs'][0]['write']['clat_ns']["percentile"]["95.000000"]/1000/1000
+        result['latency_990']=data['jobs'][0]['write']['clat_ns']["percentile"]["99.000000"]/1000/1000
+        result['latency_999']=data['jobs'][0]['write']['clat_ns']["percentile"]["99.900000"]/1000/1000
+        print_header(job_id)
+        #pprint '{}                |{}                    |{}'.format(result['type'],result['iops'],result['bandwidth'])
+        print tabulate([[result['type'], result['iops'],result['bandwidth'],result['latency_avg'], result['latency_900'],result['latency_950'],result['latency_990'],result['latency_999']]], headers=['type', 'iops','bandwidth(MB)','latency_avg(ms)','latency_90%','latency_95%','latency_99%','latency_99.9%'], tablefmt='orgtbl')
+
+
+
+    else:
+        result['type']='read and write'
+        result['read_iops']=data['jobs'][0]['read']['iops']
+        result['read_bandwidth']=data['jobs'][0]['read']['bw']
+        result['read_latency_avg']=data['jobs'][0]['read']['lat_ns']['mean']/1000/1000
+        result['read_latency_900']=data['jobs'][0]['read']['clat_ns']["percentile"]["90.000000"]/1000/1000
+        result['read_latency_950']=data['jobs'][0]['read']['clat_ns']["percentile"]["95.000000"]/1000/1000
+        result['read_latency_990']=data['jobs'][0]['read']['clat_ns']["percentile"]["99.000000"]/1000/1000
+        result['read_latency_999']=data['jobs'][0]['read']['clat_ns']["percentile"]["99.900000"]/1000/1000
+        
+        
+        
+        result['write_iops']=data['jobs'][0]['write']['iops']
+        result['write_bandwidth']=data['jobs'][0]['write']['bw']
+        
+        result['write_latency_avg']=data['jobs'][0]['write']['lat_ns']['mean']/1000/1000
+        result['write_latency_900']=data['jobs'][0]['write']['clat_ns']["percentile"]["90.000000"]/1000/1000
+        result['write_latency_950']=data['jobs'][0]['write']['clat_ns']["percentile"]["95.000000"]/1000/1000
+        result['write_latency_990']=data['jobs'][0]['write']['clat_ns']["percentile"]["99.000000"]/1000/1000
+        result['write_latency_999']=data['jobs'][0]['write']['clat_ns']["percentile"]["99.900000"]/1000/1000
+        print_header(job_id)
+        #print 'read        |{}             |{}'.format(result['read_iops'],result['read_bandwidth'])
+        #print 'write       |{}             |{}'.format(result['write_iops'],result['write_bandwidth'])
+
+        print tabulate([['read', result['read_iops'],result['read_bandwidth'],result['read_latency_avg'],result['read_latency_900'],result['read_latency_950'],result['read_latency_990'],result['read_latency_999']],['write',result['write_iops'],result['write_bandwidth'],result['write_latency_avg'],result['write_latency_900'],result['write_latency_950'],result['write_latency_990'],result['write_latency_999']]],headers=['type', 'iops','bandwidth(MB)','latency_avg(ms)','latency_90%','latency_95%','latency_99%','latency_99.9%'], tablefmt='orgtbl')
+    #print result
+def do_all_fio_jobs(fio_filename,fio_size,fio_runtime):
+     try:
+         files= os.listdir(PATH)
+         for each_file in files:
+             do_fio_job(each_file,fio_filename,fio_size,fio_runtime)
+
+
+     except Exception as e:
+         print 'counter exception: {}'.format(str(e))
+
+
+
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='seg bench  ')
+    parser.add_argument('-t','--type', action="store_true",default='iscsi',help='hep info')
+    parser.add_argument('-l','--listjobs', action="store_true",help='destination of rsync, cannot be empty')
+    parser.add_argument('-p','--printjobs', action="store_true",help='print job')
+
+    parser.add_argument('-j','--job_id',help='job id')
+    parser.add_argument('-r','--runtime_of_each_job',help='run_time_of_each_job')
+    parser.add_argument('-d','--destination',
+                        help='filename parameter in fio, for iscsi it is a device like /dev/sdx, for nas it is directory')
+    parser.add_argument('-s','--size',help='size parameter in fio,like 10M or 10G or 1T')
+
+    options = parser.parse_args()
+    if options.listjobs:
+        print 'list jobs'
+        list_fio_pattern()
+
+
+    if options.printjobs:
+        print 'print jobs'
+        if not options.job_id:
+            print "plesase spcify the job id"
+
+        else:
+            print options.type
+            print_fio_pattern(options.type,options.job_id)
+
+    if options.job_id and options.destination and options.size and options.runtime_of_each_job:
+        do_fio_job(options.job_id,options.destination,options.size,options.runtime_of_each_job)
+
+
+    if  options.destination and options.size and options.runtime_of_each_job:
+        if not options.job_id:
+
+            do_all_fio_jobs(options.destination,options.size,options.runtime_of_each_job)
+
+
+
+if __name__ == '__main__':
+    exit(main())

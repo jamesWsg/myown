@@ -1,0 +1,40 @@
+- name: install mariadb and configure
+  hosts: all
+  #remote_user: wsg
+  #sudo: yes
+  #sudo_user: root
+  gather_facts: false
+  
+  tasks:
+  - name: test command pwd
+    sudo: yes
+    shell: pwd
+
+  - name: add mariadb repository 
+    sudo: yes
+    apt_repository:
+      repo: deb  http://kartolo.sby.datautama.net.id/mariadb/repo/5.5/ubuntu trusty  main
+      state: present
+
+  - name: install maria db
+    sudo: yes
+    apt:
+      name: "{{ item }}" 
+      state: present 
+    with_items:
+      - mariadb-server
+      - python-mysqldb
+
+  - name: uninstall fio
+    sudo: yes
+    apt: name=fio state=absent update_cache=yes
+
+
+#  - name: install maria db
+#    sudo: yes
+#    apt: name=fio state=latest update_cache=yes
+#  - name: uninstall fio
+#    sudo: yes
+#    apt: name=fio state=absent update_cache=yes
+
+

@@ -1,0 +1,52 @@
+- name: install mariadb and configure
+  hosts: all
+  #remote_user: wsg
+  #sudo: yes
+  #sudo_user: root
+  vars:
+    maria_db_repo: deb  http://kartolo.sby.datautama.net.id/mariadb/repo/5.5/ubuntu trusty  main
+
+
+  gather_facts: false
+  
+  tasks:
+  - name: test command pwd
+    become: yes
+    become_user: root
+    #shell: cp /etc/network/interfaces /root/
+    shell: touch /root/1.wsg
+
+  - name: add mariadb repository
+    become: yes
+    become_user: root
+    template:
+      src: roles/templates/sources.list
+      dest: /etc/apt/sources.list
+      backup: yes
+
+## apt-key shoud add and uptdate,otherwise can not auto install maria
+  - name: add  maraidb apt-key
+    become: yes
+    become_user: root
+    shell: apt-key adv --recv-keys --keyserver  hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
+
+  - name: update maraidb apt-key
+    become: yes
+    become_user: root
+    shell: apt-key update
+  
+  - name: install mariadb 
+    become: yes
+    become_user: root
+    apt: 
+      name: "{{item}}"
+      state: present
+      update_cache: yes
+    with_items:
+      - software-properties-common
+      - mariadb-server-5.5
+      - python-mysqldb
+
+
+
+

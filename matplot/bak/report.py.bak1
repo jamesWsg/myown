@@ -1,0 +1,115 @@
+#!/usr/bin/env python 
+
+
+import os
+import time
+import sys
+import json
+from copy import deepcopy
+import  datetime
+from optparse import OptionParser
+import logging
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdate
+import numpy as np
+
+#EZLog.init_handler(logging.INFO, "report.log")
+#logger = EZLog.get_logger("report")
+
+
+
+
+def main(argv=None):
+
+    with open('cluster.collect_data', 'r') as f:
+        data = json.load(f)
+
+    print('begin')
+    print (data.keys())
+    plot_data=data['data']['cluster']
+    
+    startdate=datetime.datetime(2017,11,8,10,35,0)
+    print (startdate)
+    enddate=datetime.datetime(2017,11,8,11,35,0)
+    print (enddate)
+
+
+
+    item_time=plot_data[0]
+    begin_time=item_time[0]
+    end_time=item_time[1]
+    delta_time=item_time[2]
+    #print (begin_time,end_time,delta_time)
+    time_list=[]
+    time_list.append(begin_time)
+    next_time = begin_time + delta_time
+    while next_time < end_time:
+        time_list.append(next_time)
+        next_time = next_time + delta_time
+    #print(time_list)
+    #print(len(time_list))
+    
+    #plot_time=mdate.num2date(time_list)
+    #print (plot_time)
+    '''
+    convet linux timestamp to date format
+    '''
+    time_list_temp=[]
+    for time in time_list:
+        time_list_temp.append(datetime.datetime.fromtimestamp(time))
+    print (time_list_temp)
+
+    
+    dts = map(datetime.datetime.fromtimestamp, time_list)
+    print (dts)
+    fds = mdate.date2num(dts) 
+    print (fds)
+    #plot_time_list=mdate.num2date(time_list_temp)
+    #print (plot_time_list)
+
+
+    all_item=plot_data[1]
+    all_item_data=plot_data[2]
+#    print (item_time,all_item_data)
+    read_ops=[]
+    write_ops=[]
+    read_bytes=[]
+    write_bytes=[]
+    for item_data in all_item_data:
+        read_ops.append(item_data[0])
+        write_ops.append(item_data[1])
+        read_bytes.append(item_data[2])
+        write_bytes.append(item_data[3])
+    #print (len(read_ops))
+
+    '''
+    plot
+    '''
+
+    fig, ax = plt.subplots()
+
+    ax.plot(fds, read_ops, 'ro-',label='read_ops')
+    ax.plot(fds, write_ops, 'black',label='write')
+    ax.xaxis_date()
+    fig.autofmt_xdate()
+    xfmt = mdate.DateFormatter('%y-%m-%d %H:%M')
+    ax.xaxis.set_major_formatter(xfmt)
+    
+    #leg = plt.legend(loc='upper right', ncol=2, mode="expand", shadow=True, fancybox=True)
+    ax.set_title('cluster ops')
+    ax.set_xlabel('time')
+    leg = plt.legend(loc='upper right')
+    leg.get_frame().set_alpha(0.5)
+
+    plt.show()
+
+
+
+    #plt.plot(fds,read_ops)
+    #plt.show()
+    #print (plot_data)
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+

@@ -1,0 +1,202 @@
+uck (2.4.7-0ubuntu1) quantal; urgency=low
+  * New upstream release
+
+ -- Fabrizio Balliano <fabrizio@fabrizioballiano.it>  Wed, 16 Jan 2013 01:47:14 +0200
+
+uck (2.4.6-0ubuntu1) precise; urgency=low
+  * New upstream release:
+
+ -- Fabrizio Balliano <fabrizio@fabrizioballiano.it>  Mon, 09 Apr 2012 01:47:14 +0200
+
+uck (2.4.5-0ubuntu1) oneiric; urgency=low
+  * New upstream release:
+    - new languages (zh-hans/zh-hant) are now correctly handled.
+	  Fixes LP: #770810
+    - hybrid image generation support was added to uck-gui
+      Fixes LP: #830146
+    - oneiric language packs support was added
+    - /etc/fstab is not mandatory in the squashfs file system
+      Fixes LP: #808506
+    - /var/run is now a symbolic link to /run
+      Fixes LP: #812418
+    - Oneiric alternate support was added
+      Fixes LP: #842487
+    - mkisofs calls were replaced with genisoimage
+      Fixes LP: #836350
+    - isohybrid support was added (uck-remaster-pack-iso -h)
+      Fixes LP: #830146
+    - manifest diff now checks if manifest files really exist
+    - lxterminal support was added
+      Fixes LP: #865295
+    - mksquashfs now uses XZ (lzma) compression if available
+	  (squashfs-tool => 4.1 and guest kernel => 2.6.30)
+	  Fixes LP: #654234
+    - gfxboot-theme-ubuntu download method was rewritten
+    - firefox locale auto-remove workaround was added
+      Fixes LP: #886838
+    - suggestion for syslinux (isohybrid) installation was added
+
+ -- Fabrizio Balliano <fabrizio@fabrizioballiano.it>  Thu, 10 Nov 2011 01:47:14 +0200
+
+uck (2.4.4-0ubuntu1) natty; urgency=low
+  * New upstream release:
+    - Extract proxy environment variables in uck-gui and pass them on to
+      the chroot environment around sudo calls.
+      Fixes LP: #111253
+    - uck-gui now passes REMASTER_HOME to uck-remaster. Necessary for
+      changed behaviour of sudo in Natty.
+      Fixes LP: #748209
+
+ -- Fabrizio Balliano <fabrizio@fabrizioballiano.it>  Mon, 04 Apr 2011 01:47:14 +0200
+
+uck (2.4.3-0ubuntu1) maverick; urgency=low
+  * New upstream release:
+    - yaboot dep was added (only for ppc)
+      Fixes LP: #516231
+    - Added code to remember kernel update state (shared /var/run issue)
+      Fixes LP: #682108
+    - Applied patch to handle changed named of syslinux config file.
+	  Fixes LP: #681032
+	- uck-remaster-prepare-alternate and uck-remaster-finalize-alternate now
+	  support all architectures (and not only i386)
+	  Fixes LP: #693620
+
+ -- Fabrizio Balliano <fabrizio@fabrizioballiano.it>  Wec, 29 Dec 2010 01:47:14 +0200
+
+uck (2.4.0-0ubuntu1) maverick; urgency=low
+
+  * New upstream release:
+    - Support for maverick was added.
+      Fixes LP: #659572 and #618705 and #664709.
+    - gvfs problem in chroot environment was solved.
+      Fixes LP: #657689.
+  * Depends on gfxboot-dev (only >= maverick).
+  * Bump Standards.
+  
+ -- Fabrizio Balliano <fabrizio@fabrizioballiano.it>  Thu, 18 Nov 2010 01:47:14 +0200
+
+uck (2.2.1-0ubuntu1) maverick; urgency=low
+
+  * New upstream release:
+    - Brasero style checksums support was added (#575825)
+    - bugs with virtual packages for languages packs were solved.
+      Fixes LP: #580578 and #525635.
+    - workarout for portuguese (pt_PT) language management was implemented,
+	  fixes LP: #582200
+    - GUI now uses kdialog, zenity, dialog or builtin (in that order) if
+      available. Fixes LP: #577197
+  * Depends on sudo (LP: #602401)
+  * Bump Standards.
+  * Suggests on brasero | k3b | burn.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Wed, 20 Jul 2010 01:47:14 +0200
+
+uck (2.2.0-0ubuntu1) maverick; urgency=low
+
+  * New upstream release:
+    - Add Ubuntu 10.04 support (LP: #544555).
+    - Fix crash due to the use of hard coded path for custom scripts,
+      fixes LP: #547260.
+  * Drop all patches, applied upstream.
+  * Bump Standards.
+  * Remove debian/README.source, now unnecessary.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Sat, 08 May 2010 01:47:14 +0200
+
+uck (2.0.12-0ubuntu2) lucid; urgency=low
+
+  * Depends on wget, lzma (LP: #511301).
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Sun, 31 Jan 2010 20:13:29 +0100
+
+uck (2.0.12-0ubuntu1) lucid; urgency=low
+
+  * New upstream release:
+    - GUI:
+      + splash notes were updated
+      + a new configuration screen was added to allow selecting which
+        languages will be available on the livecd boot splash (gfxboot).
+        This was necessary because the language packs codes do not match
+        gfxbook locales.
+    - the default gfxboot language can be chosen only between the
+      gfxboot available languages (easier selection).
+    - default gfxboot language selection was made mandatory
+    - Backend:
+      + a workaround for the chrooted gnome-terminal was implemented
+  * Fixes:
+    - LP: #269741
+    - LP: #228235
+    - LP: #407443
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Fri, 22 Jan 2010 18:45:17 +0100
+
+uck (2.0.11-0ubuntu1) lucid; urgency=low
+
+  * New upstream release (also fixes LP: #478662).
+  * Switch to 3.0 (quilt) format.
+  * debian/control:
+    - Drop bzr from Depends field.
+    - Adjust debhelper versioned build-dependency.
+    - Drop build-dependency on quilt.
+    - Update debian/copyright.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Wed, 20 Jan 2010 21:03:34 +0100
+
+uck (2.0.10-0ubuntu1) lucid; urgency=low
+
+  * New upstream release, also fixes LP: #271677.
+  * debian/{compat,control,rules}: Switch to debhelper 7.
+  * debian/{control,rules,README.source}:
+    - Add support for the quilt patch system.
+  * debian/control:
+    - Bump Standards.
+    - Add ${misc:Depends} to Depends field.
+    - Bump debhelper build-dependency.
+  * debian/{examples,uck.install}:
+    - Install examples with dh_installexamples.
+  * Provide the package with a XPM icon.
+  * Add doc-base support.
+  * debian/menu: Add icon field.
+  * debian/copyright: Adopt Debian DEP-5 spec.
+  * debian/patches/01-fix_manpage.patch:
+    - Fix upstream's manpage to make lintian happy.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Sun, 08 Nov 2009 01:48:25 +0100
+
+uck (2.0.9-0ubuntu1) karmic; urgency=low
+
+  * New upstream release.
+  * debian/rules:
+    * Clean old stuffs.
+    * download-gfxboot-theme-ubuntu has been removed by upstream.
+    * Use wildcard to install all manpages.
+  * Remove unuseful debian/uck.manpages.
+  * debian/control:
+    - Depends on bzr.
+    - Bump-up Standard-Version.
+  * debian/copyright:
+    - Use new copyright placeholder © instead of (C).
+    - Update debian packaging copyright information.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Sat, 02 May 2009 21:10:58 +0200
+
+uck (2.0.8-0ubuntu1) jaunty; urgency=low
+
+  * New upstream release (LP: #325864).
+  * Remove debian/uck-gui.1, now it is provided by upstream.
+  * debian/rules:
+    - Don't use dh_link, now install all the binaries into /usr/bin/.
+    - dh_installman reads manpages list from debian/uck.manpages.
+    - Remove get-orig-source target, upstream doesn't provide debian dir
+      anymore, so we don't need to repack the source tarball.
+  * debian/copyright:
+    - Update copyright information.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Thu, 05 Feb 2009 19:23:18 +0100
+
+uck (2.0.7-0ubuntu1) jaunty; urgency=low
+
+  * Initial release (LP: #267355).
+  * Remove the debian/ dir from upstream tarball.
+
+ -- Alessio Treglia <quadrispro@ubuntu.com>  Tue, 20 Jan 2009 17:25:17 +0100

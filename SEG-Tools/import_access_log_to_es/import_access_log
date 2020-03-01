@@ -1,0 +1,5 @@
+# this file located in /etc/cron.d/
+# import_radosgw_access_log_to_es add by andy
+
+*/3 * * * * root /usr/bin/python /usr/local/bin/import_radosgw_access_log_to_es.py  >> /var/log/cron_import_radosgw_access_log_to_es.log 2>&1
+

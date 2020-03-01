@@ -1,0 +1,49 @@
+.IX Title "UCK-GUI 1"
+.TH UCK-GUI 1 "2008-02-04" "2.4.7" ""
+.\" For nroff, turn off justification.  Always turn off hyphenation; it makes
+.\" way too many mistakes in technical documents.
+.if n .ad l
+.nh
+.SH "NAME"
+\&\fBuck-gui\fR \- Ubuntu Customization Kit graphical user interface
+.SH "SYNOPSIS"
+.IX Header "SYNOPSIS"
+uck-gui [-m] [remaster-dir]
+.SH "DESCRIPTION"
+.IX Header "DESCRIPTION"
+\&\fBUbuntu Customization Kit\fR is a tool that helps you customizing
+official Ubuntu Live CDs (including Kubuntu/Xubuntu and Edubuntu) to your
+needs. You can add (almost) any package to the live system, for example
+language packs, or applications.
+.PP
+If the optional "remaster-dir" is specified this will be used as (local!)
+directory that will contain all data created during the customization process.
+This defaults to ~/tmp if not specified.
+.PP
+If the \fB\-m\fR option is specified, a set of loop back and unionfs mounts
+will be used to create a writeable instance of the ISO image accessible as
+\&\fBremaster-iso\fR under \fBremaster-dir\fR. The modified parts of the ISO
+will be cached in \fBremaster-iso-cache\fR under \fBremaster-dir\fR.
+This is a lot faster and requires less disk space, but may not work for all
+scenarios and mandates the installation of some additional software (i.e.
+fuse-utils and unionfs-fuse).
+.PP
+The scripts run during customization are a copy of the scripts found in /usr/lib/uck/customization-profiles/localized_cd.
+.PP
+Note that \fBuck-gui\fR is an interface designed to make localization of and
+simple addition of packages to Ubuntu Live-CD's simple, but that the UCK
+toolset command line interface is much more powerful.
+.PP
+There also is an alternative GUI (separately packaged as python_uckflow) that
+is somewhat more powerful but requires knowledge of shell programming.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+\fBUbuntu Customization Kit\fR has been written by Fabrizio Balliano \
+<fabrizio.balliano@crealabs.it> and Krzysztof Lichota <krzysiek@lichota.net>
+.PP
+This manual was provided by Alessio Treglia <quadrispro@ubuntu.com>.
+.PP
+Source code for the \fBUbuntu Customization Kit\fR is available at
+http://uck.sourceforge.net
+.PP
+Bugs can be reported at https://bugs.launchpad.net/uck/

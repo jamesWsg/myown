@@ -1,0 +1,60 @@
+#!/bin/bash
+###
+#return value has transformation 
+#return bw unit is MB/sec
+# return latency unit is us
+#
+
+
+
+TRAGET_IP=$1
+TRAGET_TYPE=$2
+LOG=/var/log/zabbix_qperf.log
+#result=$(qperf $TRAGET_IP $TRAGET_TYPE)
+
+process_tcp_bw()
+{
+  result=$(qperf $TRAGET_IP tcp_bw |grep -v '^tcp' |grep bw |awk -F= '{print $2}') 
+  value=`echo $result |awk '{print $1}'`
+  unit=`echo $result |awk '{print $2}'`
+
+  if [[ ${unit} == 'MB/sec' ]];then
+      #return $value
+      echo $value
+  elif [[ $unit == 'GB/sec' ]];then
+      new_value=`echo $value*1024 |bc`
+      echo $new_value
+  else 
+     echo "unexpect erro" >>$LOG
+  fi
+}
+
+
+
+process_tcp_lat()
+{
+  result=$(qperf $TRAGET_IP tcp_lat |grep latency |awk -F= '{print $2}') 
+  value=`echo $result |awk '{print $1}'`
+  unit=`echo $result |awk '{print $2}'`
+
+  if [[ ${unit} == 'us' ]];then
+      #return $value
+      echo $value
+  elif [[ $unit == 'ms' ]];then
+      new_value=`echo $value*1000 |bc`
+      echo $new_value
+  else 
+     echo "unexpect erro" >>$LOG
+  fi
+}
+
+
+case $TRAGET_TYPE in
+
+  bw)     process_tcp_bw;;
+  lat)    process_tcp_lat;;
+  *) echo 'ERROR_WRONG_PARa'; exit 1;;
+esac
+exit 0
+
+

@@ -1,0 +1,105 @@
+- name: begin upload and config zabbix-agent 
+  hosts: all
+  #remote_user: wsg
+  #sudo: yes
+  #sudo_user: root
+  gather_facts: false
+  vars: 
+    src_dir: /mnt/code/my_code/my-own/ansible_project/zabbix-agent
+    dest_dir: /tmp/
+
+    ## iostat dest dir,include qperf 
+    BIN_DIR: /usr/local/zabbix-agent-ops/bin
+    TMP_DATA_DIR: /usr/local/zabbix-agent-ops/var
+
+  
+  tasks:
+  - name: test command pwd
+    sudo: yes
+    shell: pwd
+
+  - name: cp dir zabbix agent
+    copy: 
+      src: "{{ src_dir }}/install_zabbix_agent" 
+      dest: "{{ dest_dir }}"
+
+
+  - name: install zabbix-agent by dpkg -i
+    shell: dpkg -i {{ dest_dir }}install_zabbix_agent/zabbix-agent_3.0.0-1+trusty_amd64.deb
+
+
+  - name: config zabbix-agent
+    shell: bash {{ dest_dir }}install_zabbix_agent/config_zabbix_agent.sh
+
+
+## config iostat
+  - name: make sure dest  iostat dir exist
+    file: 
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - "{{ BIN_DIR }}"
+      - "{{ TMP_DATA_DIR }}"
+
+  - name: cp iostat shell to the above dir
+    copy:
+      src: "{{ src_dir }}/iostat/{{ item }}"
+      dest: "{{ BIN_DIR }}"
+      mode: 0755
+    with_items:
+      - dev-discovery.sh
+      - iostat-check.sh
+      - iostat-cron.sh
+
+  - name: cp iostat cron to the dest
+    copy: 
+      src: "{{ src_dir }}/iostat/iostat_cron_conf"
+      dest: /etc/cron.d/
+      #mode: 0755
+
+
+  - name: cp iostat zabbix-agent conf  to the dest
+    copy: 
+      src: "{{ src_dir }}/iostat/iostat-params.conf"
+      dest: /etc/zabbix/zabbix_agentd.d/
+      #mode: 0755
+
+
+## config qperf
+
+  - name: cp qperf shell to the above dir
+    copy:
+      src: "{{ src_dir }}/qperf/{{ item }}"
+      dest: "{{ BIN_DIR }}"
+      mode: 0755
+    with_items:
+      - qperf_check.sh
+      - qperf_cron.sh
+      - qperf_check_ip_list
+      
+  - name: cp qperf cron to the dest
+    copy: 
+      src: "{{ src_dir }}/qperf/qperf_cron_conf"
+      dest: /etc/cron.d/
+      #mode: 0755
+
+  - name: cp qperf zabbix-agent conf  to the dest
+    copy: 
+      src: "{{ src_dir }}/qperf/qperf-param.conf"
+      dest: /etc/zabbix/zabbix_agentd.d/
+      #mode: 0755
+
+  - name: cp qperf bin  to the dest /usr/local/bin
+    copy: 
+      src: "{{ src_dir }}/qperf/qperf"
+      dest: /usr/local/bin
+      mode: 0755
+
+
+
+
+## restart zabbix-agent service
+  - name: restart zabbix agent
+    service: 
+      name: zabbix-agent
+      state: restarted

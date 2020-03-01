@@ -1,0 +1,175 @@
+#!/usr/bin/env python 
+
+
+import os
+import time
+import sys
+import json
+from copy import deepcopy
+import  datetime
+from optparse import OptionParser
+import logging
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdate
+import numpy as np
+
+#EZLog.init_handler(logging.INFO, "report.log")
+#logger = EZLog.get_logger("report")
+
+def process_cluster_data(filename):
+    print('begin process cluster data')
+    with open(filename,'r') as f:
+        data = json.load(f)
+    print('open rrd_data')
+    plot_data=data['data']['cluster']
+    item_time=plot_data[0]
+    all_item_name=plot_data[1]
+    all_item_data=plot_data[2]
+
+    plot_time=convert_time_to_matplot(item_time)
+
+
+    read_ops=[]
+    write_ops=[]
+    read_bytes=[]
+    write_bytes=[]
+    print(read_ops)
+    for item_data in all_item_data:
+        read_ops.append(item_data[0])
+        write_ops.append(item_data[1])
+        read_bytes.append(item_data[2])
+        write_bytes.append(item_data[3])
+    '''
+    plot
+    '''
+
+    fig, ax_arr = plt.subplots(2,sharex=True)
+
+    #ax.plot(fds, read_ops, 'ro-')
+    ax_arr[0].plot(plot_time, read_ops, 'palegreen',label='read_ops')
+    ax_arr[0].plot(plot_time, write_ops, 'black',label='write_ops')
+
+    ax_arr[0].xaxis_date()
+    xfmt = mdate.DateFormatter('%y-%m-%d %H:%M')
+    ax_arr[0].xaxis.set_major_formatter(xfmt)
+    ax_arr[0].set_title('cluster ops')
+    ax_arr[0].set_xlabel('time')
+    ##
+
+    ax_arr[1].plot(plot_time, read_bytes, 'palegreen',label='read_byte')
+    ax_arr[1].plot(plot_time, write_bytes, 'black',label='write_byte')
+
+    ax_arr[1].xaxis_date()
+    xfmt = mdate.DateFormatter('%y-%m-%d %H:%M')
+    ax_arr[1].xaxis.set_major_formatter(xfmt)
+    
+    leg = plt.legend(loc='upper right')
+    
+    plt.show()
+    plt.savefig('cluster_ops_bytes')
+
+
+
+
+def process_all_node_network(filename,nodes):
+    print('begin process network data')
+    with open(filename,'r') as f:
+        data = json.load(f)
+    print('open rrd_data')
+    all_node_data=data['data']
+
+    for node in nodes:
+        try:
+            storage_interface='eth0'
+            public_interface='eth1'
+
+            node_data_storage_interface='node.{}.{}'.format(node,storage_interface)
+            node_data_public_interface='node.{}.{}'.format(node,public_interface)
+            item_time=all_node_data[node_data_storage_interface][0]
+
+            plot_time=convert_time_to_matplot(item_time)
+
+            node_data_storage_interface_util=all_node_data[node_data_storage_interface][2]
+            node_data_public_interface_util=all_node_data[node_data_public_interface][2]
+
+            '''
+            plot
+            '''
+
+            #fig, ax = plt.subplots()
+
+            #ax.plot(fds, read_ops, 'ro-')
+            ax.plot(plot_time, node_data_storage_interface_util, 'palegreen',label='node_data_storage_interface_util')
+            ax.plot(plot_time, node_data_public_interface_util, 'black',label='node_data_public_interface_util')
+
+            ax.xaxis_date()
+            fig.autofmt_xdate()
+            xfmt = mdate.DateFormatter('%y-%m-%d %H:%M')
+            ax.xaxis.set_major_formatter(xfmt)
+            leg = plt.legend(loc='upper right', ncol=2, shadow=True, fancybox=True)
+            
+            #plt.show()
+            plt.savefig('{}.network.util'.format(node))
+
+        except Exception as e:
+            logger.error("catch exception:{}".format(str(e)))
+            logger.error("call trace:{}".format(traceback.format_exc()))
+
+
+def plot_data(plot_time):
+
+    fig, ax = plt.subplots()
+
+    ax.plot(fds, read_ops, 'ro-')
+    ax.xaxis_date()
+    fig.autofmt_xdate()
+    xfmt = mdate.DateFormatter('%y-%m-%d %H:%M')
+    ax.xaxis.set_major_formatter(xfmt)
+    
+    plt.show()
+
+def convert_time_to_matplot(item_time):
+
+    begin_time=item_time[0]
+    end_time=item_time[1]
+    delta_time=item_time[2]
+    #print (begin_time,end_time,delta_time)
+    time_list=[]
+    time_list.append(begin_time)
+    next_time = begin_time + delta_time
+    while next_time < end_time:
+        time_list.append(next_time)
+        next_time = next_time + delta_time
+    #print(time_list)
+    #print(len(time_list))
+    
+    #plot_time=mdate.num2date(time_list)
+    
+    datetime_list = map(datetime.datetime.fromtimestamp, time_list)
+    
+    plot_time = mdate.date2num(datetime_list) 
+    return plot_time
+
+
+def process_host_cpu_data(filename):
+
+    with open(filename,'r') as f:
+        data = json.load(f)
+    
+
+
+
+def main(argv=None):
+    print('begin')
+    
+    #fig, ax = plt.subplots()
+    #process_cluster_data('cluster.collect_data',fig,ax)
+
+    process_cluster_data('cluster.collect_data')
+
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+

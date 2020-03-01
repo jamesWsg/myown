@@ -1,0 +1,30 @@
+- name: cp 
+  hosts: all
+  #remote_user: wsg
+  #sudo: yes
+  #sudo_user: root
+  gather_facts: false
+  vars: 
+    src_dir: /mnt/code/my_code/my-own/ansible_project/zabbix/install_zabbix_agent
+    BIN_DIR: /usr/local/zabbix-agent-ops/bin
+    TMP_DATA_DIR: /usr/local/zabbix-agent-ops/var
+
+    
+  
+  tasks:
+  - name: make sure the dest dir exist
+    file:
+      path: "{{ BIN_DIR }}"
+      state: directory
+
+  - name: cp
+    copy: 
+      src: "{{ src_dir }}" 
+      dest: /tmp/
+
+
+#    - name: apt repsoitory 
+#      apt_repository: repo='deb deb http://nginx.org/packages/mainline/ubuntu/ xenial nginx' state=present filename='nginx' update_cache='yes'
+#    - name: isntall  
+#        apt: name='nginx' state='present' update_cache='yes'
+

@@ -1,0 +1,587 @@
+-----------
+-- 2.4.7 --
+-----------
+
+* Frontend:
+	* "Run package manager" option (while customizing) was removed
+	  due to the latest ubuntu changes in package managers (they
+	  cannot be used in a chrooted environment, use apt-get instead)
+	  Fixes #892038
+
+* Backend:
+	* chroot crash reports are cleaned while exiting chroot environment
+	  Fixes #1011260
+	* non blocking error is thrown upon resolv.conf copying failure
+	  Fixes #1011191
+	* README was updated with info about grub update and grub-probe
+	  Fixes #956495
+	* bug #997033 was fixed
+	* bug #1008787 was fixed
+	* grub-probe postinst/postrm are now deactivated while customizing
+	  Fixes #1008620
+* Package:
+	* libfribidi-bin was added as dep
+	  Fixes #1075054
+
+-----------
+-- 2.4.6 --
+-----------
+
+* Frontend:
+	* Unity was added to the desktop manager choice
+	  Fixes #946404
+
+* Backend:
+	* Languages list was updated to precise
+	* A bug with /etc/resolv.con on precise was fixed
+	  Fixes #946480
+	* A bug with xubuntu-terminal was fixed
+	  Fixes #892590
+	* grub-probe now is deactivated during chroot processes
+	  Fixes #956495
+* Package:
+	* Added 64x64px icon
+	  Fixes #970827
+
+-----------
+-- 2.4.5 --
+-----------
+
+* Frontend:
+	* new languages (zh-hans/zh-hant) are now correctly handled.
+	  Fixes #770810
+	* hybrid image generation support was added to uck-gui (#830146)
+	* oneiric language packs support was added
+* Backend:
+	* /etc/fstab is not mandatory in the squashfs file system (#808506)
+	* /var/run is now a symbolic link to /run (#812418)
+	* Oneiric alternate support was added (#842487)
+	* mkisofs calls were replaced with genisoimage (#836350)
+	* isohybrid support was added (uck-remaster-pack-iso -h) (#830146)
+	* manifest diff now checks if manifest files really exist
+	* lxterminal support was added (#865295)
+	* mksquashfs now uses XZ (lzma) compression if available
+	  (squashfs-tool => 4.1 and guest kernel => 2.6.30)
+	  (#654234)
+	* gfxboot-theme-ubuntu download method was rewritten
+	  (question #157847)
+	* firefox locale auto-remove workaround was added (#886838)
+* Package:
+	* suggestion for syslinux (isohybrid) installation was added
+
+-----------
+-- 2.4.4 --
+-----------
+
+* Frontend:
+	* Fixed usage message in uck-remaster to match the parameter handling
+	  that was already implemented.
+	* Start message now contains output of uname and lsb_release. This
+	  should help to better diagnose problems.
+	* customize script now outputs kernel and lsb_release info. This
+	  should help to better diagnose problems,
+	* uck-gui now gives proper usage message and outputs uname and
+	  lsb_release information.
+	* uck-gui now passes REMASTER_HOME to uck-remaster. Necessary for
+	  changed behaviour of sudo in Natty. Fixes (#748209). Answer
+	  questions #151311, #151108, #150223
+* Backend:
+	* Extract proxy environment variables in uck-gui and pass them on to
+	  the chroot environment around sudo calls. Solves (#111253)
+	* Modified customize_iso to correctly use REMASTER_HOME if SCRIPT_DIR
+	  was not specified.
+* Documentation:
+	* Fixed uck-gui man page: uck-gui does not accept a customization-dir
+	  parameter.
+
+-----------
+-- 2.4.3 --
+-----------
+
+* Backend:
+	* uck-remaster-prepare-alternate and uck-remaster-finalize-alternate now
+	  support all architectures (and not only i386)
+
+-----------
+-- 2.4.2 --
+-----------
+
+* Backend:
+	* Added code to remember kernel update state (shared /var/run
+	  issue). (#682108)
+	* yaboot dep was added (only for ppc)
+
+-----------
+-- 2.4.1 --
+-----------
+
+* Backend:
+	* Applied patch to handle changed named of syslinux config file.
+	  Thanks to Tom Freudenberg for this patch. (#681032)
+
+-----------
+-- 2.4.0 --
+-----------
+
+* GUI:
+	* GUI now uses kdialog, zenity, dialog or builtin (in that order) if
+	  available. (#577197)
+	* Updated uck-gui to accept parameters for loopback/unionfs mounting
+	  and added the possibility to specify a directory different from ~/tmp
+	  for remaster-dir. Change is backward compatible to uck-2.2.0.
+	  (Question/Answer 110374)
+* Backend:
+	* Sequence of actions in uck-remaster changed so that initrd is
+	  unpacked/customized/packed after the changes to the root file system
+	  and the ISO have been done. This avoids problems when customize_iso
+	  installs a new Live-CD kernel and initrd (which would previously be
+	  overwritten by the contents of the old initrd, causing a mismatch
+	  between the kernel (new) and the initrd (old)).
+	* Extended remaster-live-cd.sh by two procedures to perform 
+	  loopback+union mounts. (#72727)
+	* Added a -m option to uck-gui, uck-remaster, uck-remaster-unpack-iso
+	  and uck-remaster-unpack-rootfs that uses a combination of loopback
+	  and unionfs mounts instead of copying. This is an experimental
+	  feature as of now and not activated by default. It also depends on
+	  the packages fuse-utils and unionfs-fuse or aufs-tools, which are not
+	  (yet?) pre-requisites for UCK. Documentation for these commands
+	  updated accordingly. (#72727)
+	  At least unionfs-fuse 0.25~hg.20100315-1 is required (Currently
+	  only available from https://launchpad.net/~aakef/+archive/ppa )!
+	  Thanks to Bernd Schubert for the superb support in fixing the
+	  problems encountered.
+	* Added two new commands (uck-remaster-mount and uck-remaster-umount)
+	  and documentation. These commands are used to do the loopback/
+	  unionfs mounts/umounts required by the -m option described above.
+	  (#72727)
+	* Added code to library for union_umount to kill processes still using
+	  files in the mount. This happens when updates start daemons in the
+	  root fs.
+	* Updated all manual pages to reference the source / bug reporting URLs.
+	* initctl is disabled (replaced with /bin/true) during chroot sessions.
+	  With this change is now possible to install mysql/apache and other
+	  services in the guest system.
+	* update-grub is disabled (replaced with /bin/true) during chroot sessions.
+	  With this change is now possible to upgrade kernel in maverick too.
+	* host's fstab/mtab are copied to the guest so that chrooted "df" can work.
+	* Backend now checks for kpackagekit as packaging tool, too.
+	  Note: This requires that packagekit ist installed on the hosting
+	  system - otherwise the dbus queries to packagekitd will fail.
+	  FIXME: Running packagekitd on the host will give wrong results!!!
+	  --> We need to change the strategy here! Upstart has similar issues
+	  --> need to start "private" dbus system bus instance?!?
+	* Added error checking for arguments to uck-remaster-mount.
+	* improved error checking and handling for union mounts: either all or
+	  nothing now; imply -m if tell-tale directory (-cache) is found;
+	  made reentrant for use by uck-flow; pointless check for
+	  uck-remaster-mount removed; fallback to copy if union mount not
+	  possible; do not remove target when using mounts.
+	* uck-remaster-remove-win32-files now removes usb-creator.exe which
+	  was added in maverick
+	* Fixed immediate umount in uck-remaster-unpack-{iso,rootfs} by trap
+	  EXIT handling when using -m.
+	* unmount strategy (after chroot) was rewritten to unmount every mountpoint
+	  found inside remaster-root.
+* Package:
+	* gfxboot-dev dep added for maverick
+* Internal:
+	* New target updman in Makefile to update manual page version numbers.
+	* Updated localbuild.sh procedure to patch the debian/changelog file
+	  so that a local unsigned test version can be generated correctly.
+
+------------
+-- 2.2.2 --
+------------
+
+* Backend:
+	* ISO generation options for 64bit architecture were updated
+	
+* Package:
+	* logo lices was changed to Creative Commons Attribution 3.0 Unported
+
+------------
+-- 2.2.1 --
+------------
+
+* Backend:
+	* Brasero style checksums support was added (#575825)
+	* bugs with virtual packages for languages packs were solved
+	  (#580578, #525635)
+	* workarout for portuguese (pt_PT) language management was implemented
+	  (#582200)
+
+------------
+-- 2.2.0 --
+------------
+
+* Backend:
+	* joliet-long option was added to mkisofs
+	* uck-remaster-pack-iso support for live-cd description was added
+	  and can contain spaces (thanks to Wolf Geldmacher).
+	* uck-remaster-pack-iso ISO file argument can now be a path name, too.
+	  The ISO is still generated in remaster-new-files but will be moved
+	  to the new path (thanks to Wolf Geldmacher).
+    * uck-remaster-pack-iso md5sum now throws a fatal error
+      (thanks to Wolf Geldmacher).
+    * uck-remaster-chroot-rootfs arguments (cmd, remaster-home) have been
+      swapped (now it is "remaster-home" "cmd"). This aligns the command with
+        (a) almost all of the other uck-remaster commands that take remaster-home 
+            as first argument
+        (b) aligns the command with the chroot built-in shell command
+	    (c) allows to pass additional arguments to the command executed in
+	        the chroot environment
+	  (thanks to Wolf Geldmacher).
+    * uck-remaster reflects swap of $1<>$2 for uck-remaster-chroot-rootfs
+      (thanks to Wolf Geldmacher).
+    * uck-remaster-clean-all was added (thanks to Wolf Geldmacher)
+    * some man files were updated
+    * remaster-live-cd.sh was partially rewritten to handle mountpoints in a
+      better way, removing the unused (now) chroot_rootfs function and some
+      minor things (thanks to Wolf Geldmacher)
+    * a bug with uck-remaster handling external customization-scripts dir
+      was solved (#547260)
+    * langlist was updated to lucid
+
+------------
+-- 2.0.12 --
+------------
+
+* GUI:
+	* splash notes were updated
+	* a new configuration screen was added to allow selecting which
+	  languages will be available on the livecd boot splash (gfxboot).
+	  This was necessary because the language packs codes do not match
+	  gfxbook locales.
+	* the default gfxboot language can be chosen only between the
+	  gfxboot available languages (easier selection).
+	* default gfxboot language selection was made mandatory
+	
+* Backend:
+	* a workaround for the chrooted gnome-terminal was implemented
+
+------------
+-- 2.0.11 --
+------------
+
+* GUI:
+	* ISO mime type check was removed because new Ubuntu ISOs
+	  have "x-iso9660" mime type
+	* a bug with cd language selection was solved
+	  (thanks to Wolf Geldmacher)
+	
+* Backend:
+	* .lz initrd support was added (thanks to Wolf Geldmacher)
+	* new isolinux configuration format is now supported
+	  (thanks to Wolf Geldmacher)
+	* if a local copy of gfxboot-theme-ubuntu is found inside ~/tmp
+	  it won't be downloaded from bzr, allowing better customizations
+	  (thanks to Wolf Geldmacher)
+	* gfxboot-theme-ubuntu source download routine was completely rewritten
+	  using wget instead of bzr
+
+------------
+-- 2.0.10 --
+------------
+
+* GUI:
+	* a workaroud for right ISO format detection was added (#271677)
+	* languages list was updated to karmic
+	
+* Backend:	
+	* dbus-uuidgen support was moved to uck-remaster-chroot-rootfs
+	* a bug with xauth files was solved
+	* now we bind the whole /tmp inside the remaster-root
+
+-----------
+-- 2.0.9 --
+-----------
+
+* GUI:
+	* If you don't select a language pack to install, you're not asked
+	  to choose what desktop manager is installed in the ISO
+	* Some messages referring to currently installed distro codename
+	  were made dynamic
+	* If an error happens calling running console application UCK
+	  tries to run the fallback xterm
+
+* Backend:
+	* No error is thrown if no language packs are going to be installed
+	* No language packs are removed from the rootfs if you don't provide
+	  at least a language pack to install (otherwise you'll have an ISO
+	  with no languages at all)
+	* No language selection are removed from gfxboot if you don't choose
+	  at least a language pack to install
+	* If you don't choose a default boot language UCK does not pass a
+	  DEFAULT_LANG variable when rebuilding gfxboot, this won't modify
+	  gfxboot default
+	* No warning are thrown if "remove_win32_files" file is not present 
+	  in the remastering scripts directory
+	* a bug with the kernel image selection was solved (now the latest
+	  is always selected automatically) (thanks to Dion Stempfley)
+	* the way we retrive gfxboot-theme-ubuntu was rewritten using bazaar
+	  (the official ubuntu development tool)
+	* /var/run was added to the pseudo filesystem that are mounted in
+	  the chroot environment
+	* all previously mounted pseudo filesystems are now unmounted
+	  before starting the remastering process if a previous
+	  remaster-root directory exists
+
+-----------
+-- 2.0.8 --
+-----------
+
+* Package:
+	* every uck-* binary file now has a man page (docs/man)
+	* no need to remove the debian/ dir from upstream tarball
+	* uck-* binaries moved from /usr/share/uck to /usr/bin
+
+-----------
+-- 2.0.7 --
+-----------
+
+* Package:
+	* HTML docs were moved from docs dir to docs/html
+	* absolute paths were removed from uck.desktop file
+	* uck-48.png logo was moved from /usr/share/uck to /usr/share/pixmaps/uck.png
+
+-----------
+-- 2.0.6 --
+-----------
+
+* GUI:
+	* a message about zenity was fixed (thanks to Cesare Tirabassi)
+	* a bug with dialog file chooser was fixed (thanks to norsetto)
+	* some info messages were rewritten (thanks to Andrew Sayers)
+
+* Package:
+	* some dependencies were added (thanks to norsetto and Alessio Treglia)
+	* copyright notes were added in some files
+	  (thanks to norsetto and Alessio Treglia)
+
+-----------
+-- 2.0.5 --
+-----------
+
+* GUI:
+	* UCK version number fix
+	
+* Backend:
+	* uck-remaster script now outputs UCK version
+	  for a better debugging
+	* minor fix to download-gfxboot-theme-ubuntu
+	  (thanks to Alessio Treglia)
+
+* Package:
+	* minor fixes to uck.desktop (thanks to Alessio Treglia)
+	* some license/copyright issues were fixed (thanks to Alessio Treglia)
+
+-----------
+-- 2.0.4 --
+-----------
+
+* Backend:
+	* initrd detection was updated to intrepid
+	* ISO mime type detection was updated to intrepid
+	* langlist was updated to intrepid
+
+-----------
+-- 2.0.3 --
+-----------
+
+* GUI:
+	* minor doc updates
+	* menu icon was moved from "utilities" to "system tools"
+
+-----------
+-- 2.0.2 --
+-----------
+
+* General:
+	* License was switched to GPL3
+	
+* GUI:
+	* languages list extraction was adapted to hardy
+
+* Backend:
+	* uck-remaster-remove-win32-files was adapted to hardy
+
+-----------
+-- 2.0.1 --
+-----------
+
+* Backend:
+	* uck-remaster-prepare-alternate now outputs a more complete message about
+	what you can do after calling the script
+
+-----------
+-- 2.0.1 --
+-----------
+
+* GUI:
+	* version number shown in uck-gui was fixed
+
+* Backend:
+	* when unpacking an "alternate" ISO now we don't try to parse the filesystem manifest
+	because it doesn't exist
+	* uck-remaster-finalize-alternate now can handle new releases of ubuntu-keyring package
+	
+* Package:
+	* fakeroot dependency was added
+
+-----------
+-- 2.0.0 --
+-----------
+
+* GUI:
+	* The question about which desktop environment will be used to manually
+	customize the ISO was removed, this is now autodetected by the backend
+	* Fix for bug 116018 (--nofork option for adept)
+	* A question about removing win32 files was added
+	* "others" option was added to the desktop choice to allow a better
+	usage with Ubuntu derivatives
+
+* Backend:
+	* remaster-live-cd script was renamed uck-remaster
+	* A script for every part of the remastering process was created:
+	uck-remaster-unpack-iso, uck-remaster-unpack-rootfs, uck-remaster-unpack-initrd,
+	uck-remaster-chroot-rootfs, uck-remaster-pack-rootfs, uck-remaster-pack-initrd,
+	uck-remaster-pack-iso, uck-remaster-clean
+	* Support for alternate cd remastering was added:
+		* uck-remaster-unpack-initrd and uck-remaster-pack-initrd automatically
+		detect if you're remastering a desktop or alternate cd and read/put files
+		in the right places
+		* uck-remaster-prepare-alternate script was added to allow you create the
+		directory you need to put extra packages in the alternate iso
+		* uck-remaster-finalize-alternate script was added to regenerate the packages
+		indexes and re-sign the release with your GPG key
+	* REMASTER_HOME is the new default variable every single script can receive as
+	parameter, the variable contains the directory where all part of the remaster
+	will be stored (default is ~/tmp)
+	* Log/error messages got more consinstancy
+	* Unuseful error messages were removed to gain readability of the log file
+	* uck-remaster-pack-iso now supports PPC, x86_64, ia64
+	* Package manager and console applications run inside the livecd are now
+	autodetected
+	* uck-remaster-remove-win32-files script was added
+	* Support for Xubuntu/XFCE was enhanced
+	* Bug #53721 was fixed, now gfxboot-theme-ubuntu is downloaded from inside
+	the chrooted environment avoiding possible incompatibilities between the host
+	system and the remastered system
+	* Gutsy images are now recognized
+	* uck-remaster-pack-rootfs has the -c (--clean-desktop-manifest) option
+	(default is OFF) allowing you to delete "live only" packages from the system
+	once that is will be installed on hard disk
+
+Package:
+	* gfxboot-theme-ubuntu dependency was dropped, available languages list
+	was imported under uck (languages list is updated to gutsy)
+
+
+-----------
+-- 1.4.1 --
+-----------
+
+* GUI:
+	* Fix for bug 109021 (multiple languages failure on feisty, zenity frontend)
+
+* Package:
+	* a menu icon was added to allow users to find uck easily
+
+---------
+-- 1.4 --
+---------
+
+* GUI:
+	* Fix for bug 73950 (uck fails on starting adept) - added checking
+	if adept or adept_manager is installed and running package app
+	appropriately.
+	* Changed messages to apply to customization menu.
+	* Changed information about upgrading kernels - now upgrading kernel should
+	be possible.
+	* Added check for running GUI as root.
+	* Added function for reporting gui errors.
+	* Added check for CD size at the end of build process - implements
+	wish 56132.
+
+* Backend:
+	* Added trapping signals to unmount filesystems in case of error.
+	* Added exporting proper *REMASTER_DIR environment variables to use in
+	customization scripts.
+	* Added customization menu in localized_cd with options to run console or package manager.
+	* Added workaround in localized_cd for bug when running kdialog as first app in session.
+	* Added code to install latest kernel on CD in
+	localized_cd/customize_iso. Allows upgrade of kernels inside root filesystem.
+	* Added unmounting squashFs filesystem in unmount_all.
+	* Added merging X cookie into both user and /root directories.
+	Seems some apps look for it in one and others in the other directory :/
+	* Fixed bug in merging Xcookie - order of arguments was reversed, so cookie
+	was in fact merged in user, not /root directory.
+	* Added UCK as preparer in ISO image :)
+	* Fixed bug in dialog_menu in gui.sh library - it did not handle choices with spaces.
+	* Moved unmounting before removing remastering directories.
+	* Added lazy unmounting using "umount -l" and more thorough
+	unmounting checks.
+
+Package:
+	* customize-cd-gui was renamed to uck-gui
+
+Examples:
+	* Applied fix for bootchart not installed on local machine (by Jyrki
+	Muukkonen), see bug 72842.
+
+---------
+-- 1.3 --
+---------
+
+* GUI:
+	* Fixed bug 60130 (Cannot create /home directory, file exists) by
+	passing name of user in some other variable.
+* Backend:
+	* Fix for bug 61600 (Checksum errors for generated ISO image)
+	(Krzysztof Lichota).
+	* Fixed bug 55981 - partially matching language names have been
+	added to boot languages (Krzysztof Lichota).
+	* Fixed bug 55693- Edgy languages list file position is now
+	correctly detected (Fabrizio Balliano)
+
+---------
+-- 1.2 --
+---------
+
+* GUI:
+	* Added ability to use package manager inside CD image to customize packages installed (Krzysztof Lichota).
+	* Support for gtk has been added (using zenity). (Fabrizio Balliano)
+	* Some info messages were updated. (Fabrizio Balliano)
+	* now we ask user if he wants to keep remaster directories to evetually do some manual customization in a second time. (Fabrizio Balliano)
+* Backend:
+	* a bug with initrd customization was fixed, now temporary initrd.gz is removed after use. (Fabrizio Balliano)
+	* a bug with initrd script calling was fixed, now all variables are available in the script too. (Fabrizio Balliano)
+	* if a previous remastering directories are found the system continues a previous session. (Fabrizio Balliano)
+	* libraries splitting and file reorganization. (Fabrizio Balliano)
+	* successful building message was added with the path to the ISO. (Fabrizio Balliano)
+	* md5sum is now generated also for the final ISO. (Fabrizio Balliano)
+	* proc and sys are now mounted in the chrooted environment. (Fabrizio Balliano)
+	* Fixed bug 49612, now if no dialog/kdialog/xdialog is detected an error message is printed out. (Fabrizio Balliano)
+	* Added possibility of running X programs from CD image in user's X server (Krzysztof Lichota).
+	* Added unmounting all filesystems upon exit (Krzysztof Lichota).
+
+---------
+-- 1.1 --
+---------
+
+* GUI:
+	* Added support for installing multiple language packs. (Krzysztof Lichota)
+	* Added support for setting boot language, it can be language variant also (for example pt_BR). (Krzysztof Lichota)
+	* Added possibility of changing CD label. (Krzysztof Lichota)
+	* Fixed removing language-selector-qt and thus kubuntu-desktop. Should fix Malone bug #47846. (Krzysztof Lichota)
+	* Fixed reporting build success in case of backend failure. (Krzysztof Lichota)
+* Backend:
+	* Added support for setting boot language, it can be language variant also (for example pt_BR). (Krzysztof Lichota)
+	* Added possibility of changing CD label. (Krzysztof Lichota)
+	* Added possibility of passing extra options to mkisofs. (Krzysztof Lichota)
+
+---------
+-- 1.0 --
+---------
+
+Initial release. (Krzysztof Lichota)

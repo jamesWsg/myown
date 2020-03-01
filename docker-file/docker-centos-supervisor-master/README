@@ -1,0 +1,25 @@
+#introdue
+
+base on centos7,have superviced framwork,can do some init bash before boot supervise
+
+if you need add more app,you shu
+
+#use example
+
+docker run -d  --name bigtera-mail -p 25:25  -p 110:110 --env="DOMAIN=bigtera.alert.com"  bigtera/mail
+
+
+* need set maildomain,bigtera.alert.com
+* image name: bigtera/mail
+
+
+
+# create mail user
+after start container,you should create mail user as follwoing
+
+1. useradd test
+2. passwd test
+3. su - test
+4. mkdir -p ~/mail/.imap/INBOX
+
+

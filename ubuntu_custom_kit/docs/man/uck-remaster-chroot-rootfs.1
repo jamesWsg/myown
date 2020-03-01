@@ -1,0 +1,32 @@
+.IX Title "UCK-REMASTER-CHROOT-ROOTFS 1"
+.TH UCK-REMASTER-CHROOT-ROOTFS 1 "2009-02-04" "2.4.7" ""
+.\" For nroff, turn off justification.  Always turn off hyphenation; it makes
+.\" way too many mistakes in technical documents.
+.if n .ad l
+.nh
+.SH "NAME"
+\&\fBuck-remaster-chroot-rootfs\fR \- Ubuntu Customization Kit chroot
+helper script
+.SH "SYNOPSIS"
+.IX Header "SYNOPSIS"
+uck-remaster-chroot-rootfs [remaster-dir] [what-to-execute]
+.SH "DESCRIPTION"
+.IX Header "DESCRIPTION"
+\&\fBuck-remaster-chroot-rootfs executes "what-to-execute" in a chroot environment
+that is equivalent to the remastered system's root.
+
+If "what-to-execute" is not specified, /bin/bash is assumed; if
+"remaster-home" is not specified, ~/tmp is assumed. Special care
+is taken to preserve quoting in this argument.
+.SH "AUTHOR"
+.IX Header "AUTHOR"
+\fBUbuntu Customization Kit\fR has been written by Fabrizio Balliano \
+<fabrizio.balliano@crealabs.it> and Krzysztof Lichota <krzysiek@lichota.net>
+.PP
+This manual was provided by Fabrizio Balliano <fabrizio.balliano@crealabs.it>
+and Alessio Treglia <quadrispro@ubuntu.com>.
+.PP
+Source code for the \fBUbuntu Customization Kit\fR is available at
+http://uck.sourceforge.net
+.PP
+Bugs can be reported at https://bugs.launchpad.net/uck/

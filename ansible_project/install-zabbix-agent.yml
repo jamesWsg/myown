@@ -1,0 +1,25 @@
+---
+- name: install mariadb and configure
+  hosts: all
+  #remote_user: wsg
+  #sudo: yes
+  #sudo_user: root
+  gather_facts: false
+  
+  tasks:
+  - name: test command pwd
+    shell: pwd
+
+  - name: cp zabbix-agent.deb to dest host
+    copy:
+      src:/mnt/124/ansible_repo/zabbix-agent_3.0.0-1+trusty_amd64.deb
+      dest:/tmp/zabbix-agent_3.0.0-1+trusty_amd64.deb
+      owner:root
+      group:root
+      mode:0644
+
+
+
+
+
+

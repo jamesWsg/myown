@@ -1,0 +1,27 @@
+{
+  "host": "10.10.10.45",
+
+  "prepare": false,
+  "download_rate": 1,
+  "upload_rate": 1,
+  "retry": 3,
+
+  "min_file_size": 10485760,
+  "max_file_size": 52428800,
+  "concurrency": 100,
+
+  "multipart_thresh": 10485760,
+
+  "account_quantity": 1,
+  "account_prefix": "account",
+
+  "bucket_per_account": 2,
+  "bucket_prefix": "bucket",
+
+  "object_per_bucket": 100000,
+  "object_prefix": "object",
+
+  "test_duration": 600,
+  "operation_interval": 0,
+  "overwrite_old_file": false
+}
